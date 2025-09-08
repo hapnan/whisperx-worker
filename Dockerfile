@@ -1,6 +1,6 @@
 FROM runpod/base:0.6.2-cuda12.4.1
 
-SHELL ["/bin/bash", "-c"]
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 WORKDIR /
 
 # Update and upgrade the system packages (Worker Template)
@@ -19,10 +19,17 @@ RUN mkdir -p /root/.cache/torch
 # Copy only requirements file first to leverage Docker cache
 COPY builder/requirements.txt /builder/requirements.txt
 
+RUN git --version && which git
+
+ENV GIT_CURL_VERBOSE=1
+
+
 # Install Python dependencies (Worker Template)
 RUN cat /builder/requirements.txt && \
     python3 -m pip install --upgrade pip hf_transfer -vvv --no-cache-dir && \
-    python3 -m pip install -r /builder/requirements.txt -vvv --no-cache-dir
+    python3 -m pip install -r /builder/requirements.txt -vvv --no-cache-dir \
+    --log /tmp/pip-reqs.log || (echo '----- pip-reqs.log -----'; sed -n '1,2000p' /tmp/pip-reqs.log; exit 1)
+
 
 
 # Copy the local VAD model to the expected location
