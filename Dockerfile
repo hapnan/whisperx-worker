@@ -30,7 +30,7 @@ COPY builder/requirements.txt /builder/requirements.txt
 
 # 5.  python dependencies
 RUN python3 -m pip install --upgrade pip hf_transfer --no-cache-dir && \
-    python3 -m pip install -r /builder/requirements.txt --no-cache-dir
+    python3 -m pip install -r /builder/requirements.txt --no-cache-dir \
     --log /tmp/pip-reqs.log || (echo '----- pip-reqs.log -----'; sed -n '1,2000p' /tmp/pip-reqs.log; exit 1)
 
 # 6.  local VAD model
