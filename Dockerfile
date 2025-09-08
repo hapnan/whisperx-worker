@@ -3,7 +3,9 @@ FROM runpod/base:0.6.2-cuda12.4.1
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 WORKDIR /
 
-# Update and upgrade the system packages (Worker Template)
+# ---------------------------------------------------------
+# 1.  system packages + build tools + fresh CA certs
+# ---------------------------------------------------------
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
@@ -11,42 +13,50 @@ RUN apt-get update && \
         ffmpeg \
         wget \
         git \
-        libcudnn8 libcudnn8-dev && \
+        ca-certificates \
+        libcudnn8 \
+        libcudnn8-dev && \
+    update-ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create cache directory
-RUN mkdir -p /cache/models
+# ---------------------------------------------------------
+# 2.  cache directories
+# ---------------------------------------------------------
+RUN mkdir -p /cache/models /root/.cache/torch
 
-# Create torch cache directory for VAD model
-RUN mkdir -p /root/.cache/torch
+# ---------------------------------------------------------
+# 3.  clone whisperx *before* pip needs it
+# ---------------------------------------------------------
+RUN git clone --depth 1 https://github.com/m-bain/whisperx.git /tmp/whisperx && \
+    cd /tmp/whisperx && \
+    git reset --hard 58f00339af7dcc9705ef40d97a1f40764b7cf555
 
-# Copy only requirements file first to leverage Docker cache
+# ---------------------------------------------------------
+# 4.  requirements file (local copy that uses the clone)
+# ---------------------------------------------------------
 COPY builder/requirements.txt /builder/requirements.txt
 
-RUN git --version && which git
-
-ENV GIT_CURL_VERBOSE=1
-
-
-# Install Python dependencies (Worker Template)
-RUN cat /builder/requirements.txt && \
-    python3 -m pip install --upgrade pip hf_transfer -vvv --no-cache-dir && \
-    python3 -m pip install -r /builder/requirements.txt -vvv --no-cache-dir \
+# ---------------------------------------------------------
+# 5.  python dependencies
+# ---------------------------------------------------------
+RUN python3 -m pip install --upgrade pip hf_transfer --no-cache-dir && \
+    python3 -m pip install -r /builder/requirements.txt --no-cache-dir
     --log /tmp/pip-reqs.log || (echo '----- pip-reqs.log -----'; sed -n '1,2000p' /tmp/pip-reqs.log; exit 1)
 
-
-
-# Copy the local VAD model to the expected location
+# ---------------------------------------------------------
+# 6.  local VAD model
+# ---------------------------------------------------------
 COPY models/whisperx-vad-segmentation.bin /root/.cache/torch/whisperx-vad-segmentation.bin
 
-# Copy the rest of the builder files
+# ---------------------------------------------------------
+# 7.  builder scripts + model downloader
+# ---------------------------------------------------------
 COPY builder /builder
+RUN chmod +x /builder/download_models.sh && /builder/download_models.sh
 
-# Download Faster Whisper Models
-RUN chmod +x /builder/download_models.sh
-RUN /builder/download_models.sh
-
-# Copy source code
+# ---------------------------------------------------------
+# 8.  application code
+# ---------------------------------------------------------
 COPY src .
 
-CMD [ "python3", "-u", "/rp_handler.py" ]
+CMD ["python3", "-u", "/rp_handler.py"]
