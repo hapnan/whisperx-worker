@@ -1,7 +1,7 @@
 from dotenv import load_dotenv, find_dotenv
 import os
 
-# find and load your .env file
+# find and load your .env file and ya
 load_dotenv(find_dotenv())
 HF_TOKEN = os.getenv("HF_TOKEN")# 
 
