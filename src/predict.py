@@ -129,6 +129,12 @@ class Predictor(BasePredictor):
                             "optional 'name' and 'file_path'. If 'name' is not provided, the file name (without "
                             "extension) is used. If 'file_path' is provided, it will be used directly.",
                 default=[]
+            ),
+            custom_align_model: str = Input(
+                description="Custom alignment model name from Hugging Face or torchaudio. If not specified, the "
+                            "default model for the detected language will be used. Example: "
+                            "'jonatasgrosman/wav2vec2-large-xlsr-53-german' or 'WAV2VEC2_ASR_BASE_960H'",
+                default=None
             )
     ) -> Output:
         with torch.inference_mode():
@@ -200,10 +206,14 @@ class Predictor(BasePredictor):
             del model
 
             if align_output:
-                if detected_language in whisperx.alignment.DEFAULT_ALIGN_MODELS_TORCH or detected_language in whisperx.alignment.DEFAULT_ALIGN_MODELS_HF:
-                    result = align(audio, result, debug)
+                # Allow alignment if language is supported OR if a custom model is provided
+                if (detected_language in whisperx.alignment.DEFAULT_ALIGN_MODELS_TORCH or 
+                    detected_language in whisperx.alignment.DEFAULT_ALIGN_MODELS_HF or 
+                    custom_align_model is not None):
+                    result = align(audio, result, debug, custom_align_model)
                 else:
-                    print(f"Cannot align output as language {detected_language} is not supported for alignment")
+                    print(f"Cannot align output as language {detected_language} is not supported for alignment. "
+                          f"You can provide a custom alignment model using the 'custom_align_model' parameter.")
 
             if diarization:
                 result = diarize(audio, result, debug, huggingface_access_token, min_speakers, max_speakers)
@@ -302,10 +312,10 @@ def distribute_segments_equally(total_duration, segments_duration, iterations):
     return start_times
 
 
-def align(audio, result, debug):
+def align(audio, result, debug, custom_align_model=None):
     start_time = time.time_ns() / 1e6
 
-    model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device)
+    model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=device, model_name=custom_align_model)
     result = whisperx.align(result["segments"], model_a, metadata, audio, device,
                             return_char_alignments=False)
 

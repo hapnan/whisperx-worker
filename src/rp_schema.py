@@ -82,5 +82,10 @@ INPUT_VALIDATIONS = {
         'type': list,
         'required': False,
         'default': []
+    },
+    'custom_align_model': {
+        'type': str,
+        'required': False,
+        'default': None
     }
 }
