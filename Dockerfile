@@ -1,11 +1,11 @@
-FROM runpod/base:0.6.2-cuda12.4.1
+FROM runpod/base:1.0.2-cuda1281-ubuntu2204
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+SHELL ["/bin/bash", "-c"]
 WORKDIR /
 
 # 1.  system packages + build tools + fresh CA certs
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+    apt-get install -y \
         build-essential \
         python3-dev \
         ffmpeg \
@@ -14,8 +14,7 @@ RUN apt-get update && \
         ca-certificates \
         libcudnn8 \
         libcudnn8-dev && \
-    update-ca-certificates && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+        apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 2.  cache directories
 RUN mkdir -p /cache/models /root/.cache/torch
@@ -30,7 +29,7 @@ COPY builder/requirements.txt /builder/requirements.txt
 
 # 5.  python dependencies
 RUN python3 -m pip install --upgrade pip \
- && python3 -m pip install hf_transfer==0.1.4 \ 
+ && python3 -m pip install hf_transfer \ 
  && python3 -m pip install --no-cache-dir -r /builder/requirements.txt
 
 # 6.  local VAD model
