@@ -1,4 +1,4 @@
-[![RunPod](https://api.runpod.io/badge/kodxana/whisperx-worker)](https://www.runpod.io/console/hub/kodxana/whisperx-worker)
+[![Runpod](https://api.runpod.io/badge/hapnan/whisperx-worker)](https://console.runpod.io/hub/hapnan/whisperx-worker)
 
 # WhisperX Worker for RunPod
 
