@@ -9,8 +9,6 @@
                 "temperature": 0.2,
                 "align_output": true,
                 "custom_align_model": "panjiariputra/indonesian-xlsr_53-LARGE-4gram",
-                "diarization": true,
-                "huggingface_access_token": "YOUR_HUGGINGFACE_TOKEN",
                 "min_speakers": 2,
                 "max_speakers": 5,
                 "debug": true
