@@ -8,6 +8,9 @@ RUN apt-get update && \
     apt-get install -y \
         build-essential \
         python3-dev \
+        pkg-config \
+        libavformat-dev libavcodec-dev libavdevice-dev \
+        libavutil-dev libswscale-dev libswresample-dev libavfilter-dev \
         ffmpeg \
         wget \
         git \
@@ -15,6 +18,7 @@ RUN apt-get update && \
         libcudnn8 \
         libcudnn8-dev && \
         apt-get clean && rm -rf /var/lib/apt/lists/*
+
 
 # 2.  cache directories
 RUN mkdir -p /cache/models /root/.cache/torch
