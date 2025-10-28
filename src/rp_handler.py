@@ -202,6 +202,7 @@ def run(job):
         "vad_onset"                : job_input.get("vad_onset", 0.50),
         "vad_offset"               : job_input.get("vad_offset", 0.363),
         "align_output"             : job_input.get("align_output", False),
+        "custom_align_model"       : job_input.get("custom_align_model"),
         "diarization"              : job_input.get("diarization", False),
         "huggingface_access_token" : job_input.get("huggingface_access_token"),
         "min_speakers"             : job_input.get("min_speakers"),
