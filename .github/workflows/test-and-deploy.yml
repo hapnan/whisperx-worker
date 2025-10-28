@@ -1,0 +1,28 @@
+name: Test and Deploy
+
+on:
+push:
+   branches: [ main ]
+pull_request:
+   branches: [ main ]
+
+jobs:
+test-and-deploy:
+   runs-on: ubuntu-latest
+   steps:
+   - uses: actions/checkout@v3
+   
+   - name: Build and push Docker image
+     uses: docker/build-push-action@v6.18.0
+     with:
+       context: .
+       push: true
+       tags: [DOCKER_USERNAME]/[WORKER_NAME]:${{ github.sha }}
+      
+   - name: Run Tests
+      uses: runpod/runpod-test-runner@v1
+      with:
+      image-tag: [DOCKER_USERNAME]/[WORKER_NAME]:${{ github.sha }}
+      runpod-api-key: ${{ secrets.RUNPOD_API_KEY }} # Add your API key to a GitHub secret
+      test-filename: .github/tests.json
+      request-timeout: 300
