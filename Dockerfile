@@ -1,23 +1,30 @@
-FROM runpod/base:1.0.2-cuda1281-ubuntu2204
+FROM nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04
+
+RUN rm -f /etc/apt/sources.list.d/*.list
 
 SHELL ["/bin/bash", "-c"]
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SHELL=/bin/bash
+
 WORKDIR /
 
-# 1.  system packages + build tools + fresh CA certs
-RUN apt-get update && \
-    apt-get install -y \
-        build-essential \
-        python3-dev \
-        pkg-config \
-        libavformat-dev libavcodec-dev libavdevice-dev \
-        libavutil-dev libswscale-dev libswresample-dev libavfilter-dev \
-        ffmpeg \
-        wget \
-        git \
-        ca-certificates \
-        libcudnn8 \
-        libcudnn8-dev && \
-        apt-get clean && rm -rf /var/lib/apt/lists/*
+# Update and upgrade the system packages
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install --yes --no-install-recommends sudo ca-certificates git wget curl bash libgl1 libx11-6 software-properties-common ffmpeg build-essential -y &&\
+    apt-get autoremove -y && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Python 3.10
+RUN apt-get update -y && \
+    apt-get install python3.10 python3.10-dev python3.10-venv python3-pip -y --no-install-recommends && \
+    ln -s /usr/bin/python3.10 /usr/bin/python && \
+    rm -f /usr/bin/python3 && \
+    ln -s /usr/bin/python3.10 /usr/bin/python3 && \
+    apt-get autoremove -y && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*
 
 
 # 2.  cache directories
