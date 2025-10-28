@@ -17,12 +17,12 @@ jobs:
                   secrets: ${{ secrets.HF_TOKEN }}
                   context: .
                   push: true
-                  tags: '[DOCKER_USERNAME]/[WORKER_NAME]:${{ github.sha }}'
+                  tags: 'hapnan/whisperx-worker:${{ github.sha }}'
 
             - name: Run Tests
               uses: runpod/test-runner@v2.1.0
               with:
-                  image-tag: '[DOCKER_USERNAME]/[WORKER_NAME]:${{ github.sha }}'
+                  image-tag: 'hapnan/whisperx-worker:${{ github.sha }}'
                   runpod-api-key: ${{ secrets.RUNPOD_API_KEY }} # Add your API key to a GitHub secret
                   test-filename: .github/tests.json
                   request-timeout: 300
